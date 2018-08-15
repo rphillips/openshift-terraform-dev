@@ -7,6 +7,7 @@ destroy:
 	terraform destroy -force
 
 install:
+	terraform init
 	terraform apply -auto-approve -var-file=constants.tfvar
 
 validate:
