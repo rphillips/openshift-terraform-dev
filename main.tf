@@ -2,6 +2,20 @@ terraform {
   required_version = ">= 0.10.7"
 }
 
+variable "cluster_name" {
+  type = "string"
+  default = "cluster1"
+}
+
+variable "tld" {
+  type = "string"
+  default = "testing"
+}
+
+locals {
+  domain = "${var.cluster_name}.${var.tld}"
+}
+
 variable "master_count" {
   type = "string"
   default = "1"
@@ -60,6 +74,27 @@ resource "libvirt_cloudinit" "commoninit" {
   ssh_authorized_key = "${var.ssh_pub_key}"
 }
 
+resource "libvirt_cloudinit" "master_init" {
+  count = "${var.master_count}"
+  local_hostname = "master-${count.index}.${local.domain}"
+  name           = "${var.cluster_name}_master_init_${count.index}.iso"
+  ssh_authorized_key = "${var.ssh_pub_key}"
+}
+
+resource "libvirt_cloudinit" "infra_init" {
+  count = "${var.infra_count}"
+  local_hostname = "infra-${count.index}.${local.domain}"
+  name           = "${var.cluster_name}_infra_init_${count.index}.iso"
+  ssh_authorized_key = "${var.ssh_pub_key}"
+}
+
+resource "libvirt_cloudinit" "compute_init" {
+  count = "${var.compute_count}"
+  local_hostname = "compute-${count.index}.${local.domain}"
+  name           = "${var.cluster_name}_compute_init_${count.index}.iso"
+  ssh_authorized_key = "${var.ssh_pub_key}"
+}
+
 resource "libvirt_volume" "fedora-cloud" {
   name = "fedora-cloud"
   source = "${var.cloud_image}"
@@ -86,6 +121,10 @@ resource "libvirt_volume" "compute_volume" {
 resource "libvirt_network" "vm_network" {
   name = "${var.cluster_name}_vm_network"
   addresses = "${var.network_subnets}"
+  domain = "${local.domain}"
+  dns_forwarder = {
+    address = "8.8.8.8"
+  }
 }
 
 resource "libvirt_domain" "masters" {
@@ -93,7 +132,7 @@ resource "libvirt_domain" "masters" {
   name = "${var.cluster_name}-master-${count.index}"
   memory = "${var.master_memory}"
   vcpu = 1
-  cloudinit = "${libvirt_cloudinit.commoninit.id}"
+  cloudinit = "${element(libvirt_cloudinit.master_init.*.id, count.index)}"
   console {
     type        = "pty"
     target_port = "0"
@@ -124,7 +163,7 @@ resource "libvirt_domain" "infra" {
   name = "${var.cluster_name}-infra-${count.index}"
   memory = "${var.infra_memory}"
   vcpu = 1
-  cloudinit = "${libvirt_cloudinit.commoninit.id}"
+  cloudinit = "${element(libvirt_cloudinit.infra_init.*.id, count.index)}"
   console {
     type        = "pty"
     target_port = "0"
@@ -155,7 +194,7 @@ resource "libvirt_domain" "compute" {
   name = "${var.cluster_name}-compute-${count.index}"
   memory = "${var.compute_memory}"
   vcpu = 1
-  cloudinit = "${libvirt_cloudinit.commoninit.id}"
+  cloudinit = "${element(libvirt_cloudinit.compute_init.*.id, count.index)}"
   console {
     type        = "pty"
     target_port = "0"
@@ -190,3 +229,10 @@ output "ip_infra" {
 output "ip_compute" {
   value = "${flatten(libvirt_domain.compute.*.network_interface.0.addresses)}"
 }
+
+resource "null_resource" "tnc_dns" {
+  provisioner "local-exec" {
+    command = "virsh -c qemu:///system net-update ${var.cluster_name}_vm_network add dns-host \"<host ip='${element(flatten(libvirt_domain.masters.*.network_interface.0.addresses), 0)}'><hostname>${var.cluster_name}-api</hostname><hostname>${var.cluster_name}-tnc</hostname></host>\" --live --config"
+  }
+}
+

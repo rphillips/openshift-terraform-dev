@@ -1,5 +1,8 @@
 .PHONY: clean destroy install validate
 
+all:
+	@echo Run make install
+
 clean:
 	rm -f terraform.tfstate*
 
