@@ -1,4 +1,4 @@
-.PHONY: clean destroy install validate
+.PHONY: clean destroy install validate outputs
 
 all:
 	@echo Run make install
@@ -15,3 +15,6 @@ install:
 
 validate:
 	terraform validate -var-file=constants.tfvar
+
+output:
+	terraform output

@@ -1,5 +1,9 @@
 # Create a KVM Libvirt OpenShift cluster using Terraform
 
+By changing constants located in constants.tfvar a local libvirt cluster will be
+created. Openshift Ansible can then be run against the cluster to provision a
+local development environment for OpenShift.
+
 ## Cloud Image
 
 Fetch the cloud image:
@@ -47,10 +51,16 @@ make install
 Destroy the cluster:
 
 ``` sh
-make cleanup
+make clean
 ```
 
 Finding the IP of nodes:
+
+``` sh
+make output
+```
+
+or
 
 ``` sh
 sudo virsh domifaddr cluster1-compute-0
