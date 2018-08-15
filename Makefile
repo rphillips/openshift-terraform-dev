@@ -3,13 +3,11 @@
 all:
 	@echo Run make install
 
-clean:
+_destroy:
+	terraform destroy -force
 	rm -f terraform.tfstate*
 
-destroy:
-	terraform destroy -force
-
-cleanup: destroy clean
+clean: _destroy
 
 install:
 	terraform init
