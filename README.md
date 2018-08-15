@@ -33,9 +33,10 @@ Copy the constants.tfvar.example to constants.tfvar
 cp constants.tfvar.example constants.tfvar
 ```
 
-`cloud_image` needs to be the full path to the image.
-`ssh_pub_key` needs to be the public component of your ssh key starting with
-`ssh-ed25519` or `ssh-rsa`.
+Edit `constants.tfvar`:
+
+* `cloud_image` needs to be the full path to the image
+* `ssh_pub_key` needs to be the public component of your ssh key starting with `ssh-ed25519` or `ssh-rsa`
 
 Start the cluster:
 
