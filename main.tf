@@ -2,20 +2,6 @@ terraform {
   required_version = ">= 0.10.7"
 }
 
-variable "auth_password" {
-  type = "string"
-}
-
-variable "cluster_name" {
-  type = "string"
-  default = "cluster1"
-}
-
-variable "domain_name" {
-  type = "string"
-  default = "os.testing"
-}
-
 variable "master_count" {
   type = "string"
   default = "1"
