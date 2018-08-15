@@ -6,9 +6,11 @@ clean:
 destroy:
 	terraform destroy -force
 
+cleanup: destroy clean
+
 install:
 	terraform init
 	terraform apply -auto-approve -var-file=constants.tfvar
 
 validate:
-	terraform validate
+	terraform validate -var-file=constants.tfvar

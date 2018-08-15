@@ -47,13 +47,13 @@ make install
 Destroy the cluster:
 
 ``` sh
-make destroy clean
+make cleanup
 ```
 
 Finding the IP of nodes:
 
 ``` sh
-sudo virsh domifaddr compute-0
-sudo virsh domifaddr infra-0
-sudo virsh domifaddr master-0
+sudo virsh domifaddr cluster1-compute-0
+sudo virsh domifaddr cluster1-infra-0
+sudo virsh domifaddr cluster1-master-0
 ```

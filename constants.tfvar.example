@@ -1,5 +1,5 @@
 cloud_image = "file:///home/rphillips/Images/Fedora-Cloud-Base-27-1.6.x86_64.qcow2"
-network_subnets = ["10.7.1.0/16"]
+network_subnets = ["10.7.0.0/16"]
 ssh_pub_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMWrruZWjXJfbxtRcTAUFNTqb3d483z8bVZaUPbvlLO8"
 master_count = "1"
 master_memory = "2048"
@@ -7,3 +7,4 @@ infra_count = "1"
 infra_memory = "1024"
 compute_count = "1"
 compute_memory = "2048"
+cluster_name = "cluster1"
