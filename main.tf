@@ -7,14 +7,29 @@ variable "master_count" {
   default = "1"
 }
 
+variable "master_memory" {
+  type = "string"
+  default = "2048"
+}
+
 variable "infra_count" {
   type = "string"
   default = "1"
 }
 
+variable "infra_memory" {
+  type = "string"
+  default = "1024"
+}
+
 variable "compute_count" {
   type = "string"
   default = "1"
+}
+
+variable "compute_memory" {
+  type = "string"
+  default = "2048"
 }
 
 variable "ssh_pub_key" {
@@ -46,10 +61,22 @@ resource "libvirt_volume" "fedora-cloud" {
   source = "${var.cloud_image}"
 }
 
-resource "libvirt_volume" "volume" {
-  name = "vm${count.index}"
+resource "libvirt_volume" "master_volume" {
+  name = "master-vm${count.index}"
   base_volume_id = "${libvirt_volume.fedora-cloud.id}"
-  count = "${master_count + etcd_count + compute_count}"
+  count = "${var.master_count}"
+}
+
+resource "libvirt_volume" "infra_volume" {
+  name = "infra-vm${count.index}"
+  base_volume_id = "${libvirt_volume.fedora-cloud.id}"
+  count = "${var.infra_count}"
+}
+
+resource "libvirt_volume" "compute_volume" {
+  name = "compute-vm${count.index}"
+  base_volume_id = "${libvirt_volume.fedora-cloud.id}"
+  count = "${var.compute_count}"
 }
 
 resource "libvirt_network" "vm_network" {
@@ -58,9 +85,9 @@ resource "libvirt_network" "vm_network" {
 }
 
 resource "libvirt_domain" "masters" {
-  count = "${master_count}"
+  count = "${var.master_count}"
   name = "master-${count.index}"
-  memory = "2048"
+  memory = "${var.master_memory}"
   vcpu = 1
   cloudinit = "${libvirt_cloudinit.commoninit.id}"
   console {
@@ -74,7 +101,7 @@ resource "libvirt_domain" "masters" {
     target_port = "1"
   }
   disk {
-    volume_id = "${element(libvirt_volume.volume.*.id, count.index)}"
+    volume_id = "${element(libvirt_volume.master_volume.*.id, count.index)}"
   }
   graphics {
     type = "spice"
@@ -86,10 +113,10 @@ resource "libvirt_domain" "masters" {
   }
 }
 
-resource "libvirt_domain" "etcd" {
-  count = 1
-  name = "etcd-${count.index}"
-  memory = "1024"
+resource "libvirt_domain" "infra" {
+  count = "${var.infra_count}"
+  name = "infra-${count.index}"
+  memory = "${var.infra_memory}"
   vcpu = 1
   cloudinit = "${libvirt_cloudinit.commoninit.id}"
   console {
@@ -103,7 +130,7 @@ resource "libvirt_domain" "etcd" {
     target_port = "1"
   }
   disk {
-    volume_id = "${element(libvirt_volume.volume.*.id, count.index)}"
+    volume_id = "${element(libvirt_volume.infra_volume.*.id, count.index)}"
   }
   graphics {
     type = "spice"
@@ -116,9 +143,9 @@ resource "libvirt_domain" "etcd" {
 }
 
 resource "libvirt_domain" "compute" {
-  count = 1
+  count = "${var.compute_count}"
   name = "compute-${count.index}"
-  memory = "1024"
+  memory = "${var.compute_memory}"
   vcpu = 1
   cloudinit = "${libvirt_cloudinit.commoninit.id}"
   console {
@@ -132,7 +159,7 @@ resource "libvirt_domain" "compute" {
     target_port = "1"
   }
   disk {
-    volume_id = "${element(libvirt_volume.volume.*.id, count.index)}"
+    volume_id = "${element(libvirt_volume.compute_volume.*.id, count.index)}"
   }
   graphics {
     type = "spice"

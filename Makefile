@@ -1,4 +1,4 @@
-.PHONY: clean destroy install
+.PHONY: clean destroy install validate
 
 clean:
 	rm -f terraform.tfstate*
@@ -8,3 +8,6 @@ destroy:
 
 install:
 	terraform apply -auto-approve -var-file=constants.tfvar
+
+validate:
+	terraform validate
